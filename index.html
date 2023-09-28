@@ -19,6 +19,12 @@
 			.slide_3 {
 				font-size: 30px !important;
 			}
+			.slide_4 {
+				font-size: 30px !important;
+			}
+			.slide_5 {
+				font-size: 30px !important;
+			}
 		</style>
 	</head>
 	<body>
@@ -31,9 +37,9 @@
 						<p>SETI at the ATA and VLA</p>
 						
 						<aside class="notes">
-							<li>The data from many antenna is processed together to so that it can effect that of a more sensitive antenna.</li>
-							<li>The antenna data is collated on processing nodes in realtime.</li>
 							<li>This is my vantage point as per SETI's operations at the VLA and ATA.</li>
+							<li>The data from many antenna is processed together to effect that of a more sensitive antenna.</li>
+							<li>The antenna data is collated on processing nodes in realtime.</li>
 						</aside>
 					</section>
 
@@ -59,7 +65,7 @@
 							<tbody>
 								<tr>
 									<td>
-										A<span class="fragment fade-in-then-semi-out" data-fragment-index="1">ntenna</span>
+										A<span class="fragment fade-in-then-semi-out" data-fragment-index="1">spect</span>
 									</td>
 									<td>
 										<span class="fragment fade-in" data-fragment-index="6">
@@ -122,17 +128,17 @@
 						
 						<aside class="notes">
 							<li>There are 4 dimensions of the samples received from the antenna, speaking generally.</li>
-							<li>There are the antenna</li>
+							<li>There are the aspects (which refers more generally to an antenna-LO combination or antenna feed or even beam)</li>
 							<li>The frequency channels</li>
 							<li>The axis of time, which enumerates the spectra.</li>
 							<li>And the polarisation of the samples.</li>
 							<li>Each processing node receives all antenna and all polarisations, as these are critical to the computations.</li>
 							<li>The frequency channels are partitioned into sub-bands per processing node.</li>
 							<li>The samples are packetised, with the payload covering:</li>
-							<li>1 antenna</li>
+							<li>1 aspect</li>
 							<li>A factor of the node's assigned subband over</li>
 							<li>A (small) portion of time</li>
-							<li>All of the antenna's polarisations</li>
+							<li>All of the aspect's polarisations</li>
 							<li>The bottleneck in the data acquisition is to reconstitute the node's portion of the sky from the packets of data.</li>
 						</aside>
 					</section>
@@ -152,22 +158,20 @@
 							Metrics of missing data are an important part of metadata.
 						</span>
 
+						<span class="fragment fade-in">
+							<h3>Application Header</h3>
+							<pre><code data-trim data-noescape data-line-numbers="1|2|3|4">
+								uint64_t spectrum_start_index;
+								uint16_t aspect_id;
+								uint16_t frequency_channel_start_index;
+								uint16_t frequency_channel_count;
+							</code></pre>
+						</span>
+
 						<aside class="notes">
-							<li>
-								The packet stream is typically unrealiable as dropped packets are excusable or at least excused, compensating against the complexity of a reliable connection.
-							</li>
+							<li>The implementation is jumbo UDP packets.</li>
+							<li>The packet stream is typically unrealiable as dropped packets are excusable or at least excused, compensating against the complexity of a reliable connection.</li>
 						</aside>
-					</section>
-					
-					<section>
-						<h2>Packetised data stream</h2>
-						<h3>Application Header</h3>
-						<pre><code data-trim data-noescape data-line-numbers="1|2|3|4">
-							uint64_t pktidx;
-							uint16_t feng_id;
-							uint16_t pkt_schan;
-							uint16_t pkt_nchan;
-						</code></pre>
 					</section>
 
 					<section class="slide_3">
@@ -209,8 +213,8 @@
 
 						<aside class="notes">
 							<li>The first output data format is the most long-standing and the packet payload matches up neatly.</li>
-							<li>Typically, the payloads are complex 8-bit samples, 2 polarisations, 16-32 spectra per packet and 32-64 channels per packet:</li>
-							<li>so it's 64-128 bytes copies at a time, 64-32 per packet, per packet-subband factor, per antenna, per packet-spectra span.</li>
+							<li>Typically, the payloads are complex 8-bit samples, 2 polarisations, 16-32 spectra per packet:</li>
+							<li>so it's 64-128 bytes copies at a time, 64-32 per packet, per packet-subband factor, per aspect, per packet-spectra span.</li>
 							<li>Order of 1 - 1.5 million packets per second.</li>
 						</aside>
 					</section>
@@ -292,19 +296,163 @@
 							<li>Whilst this incurs more copies of smaller portions, the observed throughput for this mode is much higher. This indicates that the SSE3 intrinsic is more efficiently moving the data.</li>
 						</aside>
 					</section>
+				</section>
 
-					<section>
-						<p>Contemporary ConnectX 100 Gb NICs</p>
+				<section>
+					<section class="slide_4">
+						<h3>
+							Processing Nodes
+						</h3>
+						<p>100 Gb ConnectX 5 NICs</p>
 						<p>AMD EPYC 16/24 core CPUS</p>
 						<p>Achieving ~8 GB/s</p>
-						<p class="fragment fade-in">Using 1 IBVerbs Flow Specification</p>
-						<p class="fragment fade-in">Using 12 CPU cores</p>
+						<p class="fragment fade-in">Using <span style="color: crimson;">1</span> IBVerbs Flow Specification</p>
+						<p class="fragment fade-in">Using <span style="color: crimson;">12</span> CPU cores</p>
 						
+						<span class="fragment fade-in">
+							<h3>
+								Ingest Datastream Parameter Values
+							</h3>
+							
+							<table>
+								<thead>
+									<tr>
+										<th></th>
+										<th>A</th>
+										<th>F_n</th>
+										<th>F_p</th>
+										<th>T_b</th>
+										<th>T_p</th>
+										<th>P</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>ATA</td>
+										<td>\(20\)</td>
+										<td>\(192\)</td>
+										<td>\(96\)</td>
+										<td>\(8192\)</td>
+										<td>\(16\)</td>
+										<td>\(2\)</td>
+									</tr>
+									<tr>
+										<td>VLA</td>
+										<td>\([14, 27] \times 2\)</td>
+										<td>\(32\)</td>
+										<td>\(32\)</td>
+										<td>\(131072\)</td>
+										<td>\(32\)</td>
+										<td>\(2\)</td>
+									</tr>
+								</tbody>
+							</table>
+						</span>
+
 						<aside class="notes">
 							<li>The nodes have contemporary hardware that allows throughputs of up to 8 GB/s, without packet drops.</li>
 							<li>The current software implementation only employs 1 IBVerb Flow specification to essentially offload only the intterupts of the packets.</li>
 							<li>The CPU still is employed to read through application headers and reorder the data, noting any data missing from the block at hand.</li>
+							<li>To round out the image of the datastream parameters, these are the parameter values at the ATA and VLA.</li>
+							<li>...I'd like to discuss more performant implementations</li>
+							<li>There'd be obvious benefits if flow steering could be used to alleviate CPU usage.</li>
+							<li>But because the flow specifications don't extend past L4, the application header (aspect ID, packet-subband start and packet spectra index) would need to be moved down layers L2-L4.</li>
+							<li>The packetization engine is amenable to this end, being able to specify source MAC as well as source and destination ports (and any other value within L2-L4).</li>
 						</aside>
+					</section>
+					
+					<section class="slide_5">
+						<h3>IBV Flow Steering on L2-L4</h3>
+						<table>
+							<thead>
+								<tr>
+									<th></th>
+									<th>Aspect ID</th>
+									<th>Spectra \(idx_p\)</th>
+									<th>Frequency Channel \(idx_p\)</th>
+									<!-- <th class="fragment fade-out">Frequency Channel Count</th> -->
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>Scale</td>
+									<td class="fragment fade-in"><br/> \(\leq 100\)</td>
+									<td class="fragment fade-in">\(2 \times T_b \div T_p\) <br/> \((\leq 8192)\)</td>
+									<td class="fragment fade-in">\(F_n \div F_p\) <br/> \((\leq 8)\)</td>
+								</tr>
+								<tr></tr>
+								<tr class="fragment fade-in">
+									<td style="font-style: italic;">#1</td>
+									<td>IP</td>
+									<td>Source port</td>
+									<td>Destination port</td>
+								</tr>
+								<tr class="fragment fade-in">
+									<td style="font-style: italic;">#2</td>
+									<td>MAC</td>
+									<td>Source port</td>
+									<td>Destination port</td>
+								</tr>
+								<tr class="fragment fade-in">
+									<td style="font-style: italic;">#3</td>
+									<td>MAC <br/> [23:8]</td>
+									<td>Source and Destination port</td>
+									<td>MAC <br/> [7:0]</td>
+								</tr>
+								<tr class="fragment fade-in">
+									<td style="font-style: italic;">!4</td>
+									<td>MAC</td>
+									<td>Source and Destination port</td>
+									<td>IP</td>
+								</tr>
+							</tbody>
+						</table>
+						
+						<aside class="notes">
+							<li>Of the current application headers, the frequency channel count can be excused to a more static, configuration level.</li>
+							<li>The scale of each field is important to note. Transitioning from exact indices, to packet-step indices the spectrum and channel indices can be reduced to fewer bits.</li>
+							<li>The aspect ID currently requires fewer than 8 bits and the packet-subband index less than 3, while the spectra index should have at least 13 bits .</li>
+							<li>...</li>
+							<li>As it is, the packetisation engine already has a 1:1 relationship with the aspect. So the source IP can be mapped to the aspect ID field, and the other fields to UDP port values on either end of the line.</li>
+							<li>Or the source MAC can be mapped to the aspect ID field.</li>
+							<li>If we're willing to start abusing the fields completely</li>
+							<li>Perhaps the MAC could cover both the aspect ID and the packet-subband index, enabling a greater range for the spectra index.</lji>
+							<li>Or we could break the MAC IP relationship...</lji>
+						</aside>
+					</section>
+
+					<section>
+						<h3>IBV Flow Steering Scatter Gather</h3>
+						<table>
+							<thead>
+								<tr>
+									<th></th>
+									<th>Copies</th>
+									<th>Size (Bytes)</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="fragment fade-in">
+									<td>ATFP</td>
+									<td>\(F_p\) <br/> \(\leq 64 \) </td>
+									<td>\(T_p \times |P| \times 2\) <br/> \(\leq 128\) </td>
+								</tr>
+								<tr class="fragment fade-in">
+									<td>xGPU-DP4A</td>
+									<td>\(F_p \times T_p \times |P| \times 2\) <br/> \(\leq 8192\) </td>
+									<td>\(1\)</td>
+								</tr>
+							</tbody>
+						</table>
+						
+						<aside class="notes">
+							<li>The scatter-gather capabilities need to cater to the collation too.</li>
+							<li>The AFTP output order requires a reasonable scatter gather list.</li>
+							<li>While the xGPU-DP4A output requires an more extensive, byte-by-byte scatter gather list.</li>
+						</aside>
+					</section>
+
+					<section>
 					</section>
 				</section>
 			</div>
@@ -321,9 +469,9 @@
 			// - https://revealjs.com/config/
 			Reveal.initialize({
 				hash: true,
-				progress: true,
+				progress: false,
 				center: true,
-				controls: true,
+				controls: false,
 				transition: "none",
 
 				// Learn about plugins: https://revealjs.com/plugins/
