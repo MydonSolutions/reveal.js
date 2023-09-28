@@ -411,7 +411,8 @@
 						<aside class="notes">
 							<li>Of the current application headers, the frequency channel count can be excused to a more static, configuration level.</li>
 							<li>The scale of each field is important to note. Transitioning from exact indices, to packet-step indices the spectrum and channel indices can be reduced to fewer bits.</li>
-							<li>The aspect ID currently requires fewer than 8 bits and the packet-subband index less than 3, while the spectra index should have at least 13 bits .</li>
+							<li>The aspect ID currently requires fewer than 7 bits and the packet-subband index less than 3, while the spectra index should have at least 14 bits (or 10 for the ATA).</li>
+							<li>24 bits have a 16.8 million permutations, for each of which a flow would need to be made. At the most stringent case for the ATA this is rather 6+1+9=16 bits for 65.5 k flows.</li>
 							<li>...</li>
 							<li>As it is, the packetisation engine already has a 1:1 relationship with the aspect. So the source IP can be mapped to the aspect ID field, and the other fields to UDP port values on either end of the line.</li>
 							<li>Or the source MAC can be mapped to the aspect ID field.</li>
